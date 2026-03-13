@@ -1,1 +1,15 @@
 @import "tailwindcss";
+
+body {
+  background-color: #faf6f1;
+  min-height: 100vh;
+  margin: 0;
+  overflow: hidden;
+}
+
+#dot-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
