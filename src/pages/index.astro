@@ -13,6 +13,30 @@ import "../styles/global.css";
   <body>
     <canvas id="dot-grid"></canvas>
 
+    <main class="relative z-10 flex items-center justify-center min-h-screen px-8">
+      <div class="flex gap-16 items-center max-w-3xl w-full">
+        <!-- Left column: text -->
+        <div class="flex-1 flex flex-col gap-1 text-center">
+          <p class="text-stone-500 text-2xl tracking-wide">Dearest</p>
+          <p class="text-stone-800 text-4xl font-semibold leading-snug">
+            Karth, Katz, KatyK, KJ
+          </p>
+          <p class="text-stone-700 text-5xl font-bold mt-2 tracking-tight">
+            Happy Birthday!
+          </p>
+        </div>
+
+        <!-- Right column: portrait image placeholder -->
+        <div class="flex-1 flex justify-center">
+          <img
+            src="https://placehold.co/300x400/e7e0d8/a6a09a?text=Photo"
+            alt="Portrait placeholder"
+            class="w-72 rounded-2xl shadow-sm"
+          />
+        </div>
+      </div>
+    </main>
+
     <script>
       const canvas = document.getElementById("dot-grid") as HTMLCanvasElement;
       const ctx = canvas.getContext("2d")!;
