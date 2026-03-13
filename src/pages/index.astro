@@ -13,12 +13,12 @@ import "../styles/global.css";
   <body>
     <canvas id="dot-grid"></canvas>
 
-    <main class="relative z-10 flex items-center justify-center min-h-screen px-8">
-      <div class="flex gap-16 items-center max-w-3xl w-full">
-        <!-- Left column: text -->
-        <div class="flex-1 flex flex-col gap-1 text-center">
+    <main class="relative z-10 flex items-center justify-center min-h-screen px-8 py-16">
+      <div class="flex flex-col md:flex-row gap-12 md:gap-16 items-center max-w-3xl w-full">
+        <!-- Text -->
+        <div class="flex-1 flex flex-col gap-2 text-center items-center">
           <p class="text-stone-500 text-2xl tracking-wide">Dearest</p>
-          <p class="text-stone-800 text-4xl font-semibold leading-snug">
+          <p class="text-stone-800 text-4xl max-w-full md:max-w-[75%] font-semibold leading-tighter">
             Karth, Katz, KatyK, KJ
           </p>
           <p class="text-stone-700 text-5xl font-bold mt-2 tracking-tight">
@@ -26,13 +26,24 @@ import "../styles/global.css";
           </p>
         </div>
 
-        <!-- Right column: portrait image placeholder -->
-        <div class="flex-1 flex justify-center">
-          <img
-            src="https://placehold.co/300x400/e7e0d8/a6a09a?text=Photo"
-            alt="Portrait placeholder"
-            class="w-72 rounded-2xl shadow-sm"
-          />
+        <!-- Polaroid -->
+        <div class="flex-1 flex justify-center" style="perspective: 800px;">
+          <div
+            id="polaroid"
+            class="bg-white p-3 pb-16 rounded-lg shadow-xl inline-block relative overflow-hidden"
+            style="transform: rotate(2deg); will-change: transform; transition: transform 0.1s ease-out;"
+          >
+            <img
+              src="https://placehold.co/300x400/e7e0d8/a6a09a?text=Photo"
+              alt="Portrait placeholder"
+              class="w-56 md:w-64 lg:w-72 block"
+            />
+            <div
+              id="polaroid-glimmer"
+              class="absolute inset-0 rounded-lg pointer-events-none"
+              style="opacity: 0; transition: opacity 0.3s ease;"
+            ></div>
+          </div>
         </div>
       </div>
     </main>
@@ -130,6 +141,55 @@ import "../styles/global.css";
 
       resize();
       animate();
+    </script>
+
+    <script>
+      const polaroid = document.getElementById("polaroid") as HTMLElement;
+      const glimmer = document.getElementById("polaroid-glimmer") as HTMLElement;
+
+      const BASE_ROTATE = 2;
+      const MAX_TILT = 12;
+
+      let currentX = BASE_ROTATE;
+      let currentY = 0;
+      let targetX = BASE_ROTATE;
+      let targetY = 0;
+      let rafId: number;
+
+      function lerp(a: number, b: number, t: number) {
+        return a + (b - a) * t;
+      }
+
+      function tick() {
+        currentX = lerp(currentX, targetX, 0.18);
+        currentY = lerp(currentY, targetY, 0.18);
+        polaroid.style.transform = `rotate(${BASE_ROTATE}deg) rotateX(${currentY}deg) rotateY(${currentX}deg)`;
+        rafId = requestAnimationFrame(tick);
+      }
+
+      window.addEventListener("mousemove", (e) => {
+        const rect = polaroid.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dx = (e.clientX - cx) / window.innerWidth;
+        const dy = (e.clientY - cy) / window.innerHeight;
+        targetX = dx * MAX_TILT;
+        targetY = -dy * MAX_TILT;
+
+        // glimmer: map mouse position within polaroid to a highlight spot
+        const px = ((e.clientX - rect.left) / rect.width) * 100;
+        const py = ((e.clientY - rect.top) / rect.height) * 100;
+        glimmer.style.background = `radial-gradient(circle at ${px}% ${py}%, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.08) 40%, transparent 70%)`;
+        glimmer.style.opacity = "1";
+      });
+
+      window.addEventListener("mouseleave", () => {
+        targetX = 0;
+        targetY = 0;
+        glimmer.style.opacity = "0";
+      });
+
+      tick();
     </script>
   </body>
 </html>
