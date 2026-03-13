@@ -1,0 +1,20 @@
+# Digital Scrapbook — Tech Stack
+
+## What We're Building
+
+A digital scrapbook for a friend's birthday. Friends have been asked to contribute personal letters and favorite photos (and possibly short videos). The scrapbook will be a media-rich, animation-heavy web experience — something the birthday person can open, scroll through, and enjoy. Speed matters: media should load fast, animations should feel smooth, and nothing should feel sluggish despite the volume of content.
+
+## The Stack and Why Each Piece Is There
+
+| Tool | Role | Why |
+|---|---|---|
+| **Astro** | Framework | Ships zero JS by default. Static HTML for content, hydrated React islands only where interactivity is needed. Built-in image optimization via `<Image>`. Keeps the page fast despite heavy media. |
+| **Tailwind CSS** | Styling | Utility-first CSS, fast to author, no runtime cost. Full creative control for a bespoke scrapbook layout — no component library imposing its design language. |
+| **CSS animations** | Primary animation layer | Scroll-driven reveals, fades, slides — all achievable with zero JavaScript via `animation-timeline: scroll()` and `IntersectionObserver`-triggered class toggles. Keeps the JS budget near zero for most effects. |
+| **Motion (Framer Motion)** | Complex animation layer | Reserved for interactions that CSS can't handle well: orchestrated staggers, drag/gesture-based interactions, layout animations. Used sparingly inside React islands to avoid unnecessary hydration cost. |
+| **Cloudflare R2** | Media hosting | 10 GB free storage, zero egress fees, Cloudflare CDN in front. Photos and videos load fast globally without any risk of surprise bandwidth bills, even if the link gets widely shared. |
+| **Vercel** | Hosting & deployment | Seamless Astro deployment, global edge network, push-to-deploy from Git. Fast, free on the hobby tier for a project like this. |
+
+## In Short
+
+Static-first architecture (Astro) for speed, JS only where it earns its weight (Motion for complex animations), free and fast media delivery (R2 + Cloudflare CDN), and zero-friction hosting (Vercel). The whole thing should feel snappy and polished without costing anything to run.
