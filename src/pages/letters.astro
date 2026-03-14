@@ -1,19 +1,16 @@
 ---
 import "../styles/global.css";
+import { getCollection, render } from "astro:content";
 import Envelope from "../components/Envelope.astro";
 
-const letters = [
-  { name: "Aisha",  stamps: [{ color: "#e85d75" }, { color: "#4a90c4" }], kjStamp: 1 as const, r: -7,   tx:  10, ty: -4  },
-  { name: "Rohan",  stamps: [{ color: "#6b8cce" }],                       kjStamp: 2 as const, r:  4.5, tx: -6,  ty:  5  },
-  { name: "Priya",  stamps: [{ color: "#c97b4a" }],                       kjStamp: 1 as const, r:  9,   tx:  4,  ty: -7  },
-  { name: "Dev",    stamps: [{ color: "#5a9a6b" }, { color: "#e8a849" }], kjStamp: 2 as const, r: -5,   tx: -10, ty:  3  },
-  { name: "Zara",   stamps: [{ color: "#9b6bb5" }],                       kjStamp: 1 as const, r:  6.5, tx:  8,  ty:  6  },
-  { name: "Aman",   stamps: [{ color: "#d4785a" }, { color: "#7ab56b" }], kjStamp: 2 as const, r: -10,  tx: -3,  ty: -5  },
-  { name: "Nisha",  stamps: [{ color: "#5a8ab5" }],                       kjStamp: 1 as const, r:  3.5, tx:  12, ty:  2  },
-  { name: "Kiran",  stamps: [{ color: "#c95a6b" }, { color: "#b5a05a" }], kjStamp: 2 as const, r: -8,   tx: -8,  ty: -6  },
-  { name: "Vikram", stamps: [{ color: "#8a6bc9" }],                       kjStamp: 1 as const, r:  11,  tx:  5,  ty:  4  },
-  { name: "Leela",  stamps: [{ color: "#c9896b" }],                       kjStamp: 2 as const, r: -4.5, tx: -11, ty: -3  },
-];
+const allLetters = await getCollection("letters");
+
+const rendered = await Promise.all(
+  allLetters.map(async (entry) => {
+    const { Content } = await render(entry);
+    return { entry, Content };
+  })
+);
 ---
 
 <html lang="en">
@@ -26,20 +23,25 @@ const letters = [
   <body style="overflow-y: auto;">
     <main class="letters-page">
       <div class="scatter">
-        {letters.map((letter, i) => {
-          return (
-            <Envelope
-              name={letter.name}
-              stamps={letter.stamps}
-              kjStamp={letter.kjStamp}
-              rotation={letter.r}
-              offsetX={letter.tx}
-              offsetY={letter.ty}
-            />
-          );
-        })}
+        {rendered.map(({ entry }) => (
+          <Envelope
+            name={entry.data.name}
+            stamp={entry.data.stamp}
+            kjStamp={entry.data.kjStamp}
+            rotation={entry.data.rotation}
+            offsetX={entry.data.offsetX}
+            offsetY={entry.data.offsetY}
+            slug={entry.id}
+          />
+        ))}
       </div>
     </main>
+
+    {rendered.map(({ entry, Content }) => (
+      <template data-letter={entry.id}>
+        <Content />
+      </template>
+    ))}
 
     <div class="letter-backdrop"></div>
     <div class="letter-sheet" role="dialog" aria-hidden="true">
@@ -51,11 +53,7 @@ const letters = [
         <p class="sheet-from-label">a letter from</p>
         <h2 class="sheet-sender"></h2>
         <hr class="sheet-rule" />
-        <div class="sheet-body">
-          <p>Dear KJ,</p>
-          <p>Wishing you the most wonderful birthday! May this year bring you everything your heart desires and more.</p>
-          <p>With all my love.</p>
-        </div>
+        <div class="sheet-body"></div>
       </div>
     </div>
   </body>
@@ -72,7 +70,7 @@ const letters = [
     flex-wrap: wrap;
     justify-content: center;
     gap: 36px 44px;
-    max-width: 960px;
+    max-width: 900px;
     margin: 0 auto;
   }
 
@@ -194,8 +192,24 @@ const letters = [
     color: #4a3f33;
   }
 
-  .sheet-body p {
+  .sheet-body :global(p) {
     margin: 0 0 16px;
+  }
+
+  .sheet-body :global(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    margin: 16px 0;
+    display: block;
+  }
+
+  .sheet-body :global(strong) {
+    font-weight: 700;
+  }
+
+  .sheet-body :global(em) {
+    font-style: italic;
   }
 </style>
 
@@ -239,7 +253,7 @@ const letters = [
   try {
     const container = document.createElement('div');
     container.style.cssText =
-      'position:fixed;top:0;left:0;width:280px;height:193px;opacity:0;pointer-events:none;z-index:-9999;';
+      'position:fixed;top:0;left:0;width:400px;height:276px;opacity:0;pointer-events:none;z-index:-9999;';
     document.body.appendChild(container);
 
     const noiseTexture = getShaderNoiseTexture();
@@ -304,6 +318,7 @@ const letters = [
   const sheet = document.querySelector<HTMLElement>('.letter-sheet')!;
   const sheetScroll = sheet.querySelector<HTMLElement>('.sheet-scroll')!;
   const sheetSender = sheet.querySelector<HTMLElement>('.sheet-sender')!;
+  const sheetBody = sheet.querySelector<HTMLElement>('.sheet-body')!;
   const closeBtn = sheet.querySelector<HTMLElement>('.sheet-close')!;
 
   let activeEnvelope: HTMLElement | null = null;
@@ -319,9 +334,15 @@ const letters = [
     activeEnvelope = envelope;
 
     const sender = envelope.dataset.sender || '';
+    const slug = envelope.dataset.slug || '';
     sheetSender.textContent = sender;
 
-    // Clear stale animations and inline styles from any previous cycle
+    const tpl = document.querySelector<HTMLTemplateElement>(`template[data-letter="${slug}"]`);
+    if (tpl) {
+      sheetBody.innerHTML = '';
+      sheetBody.appendChild(tpl.content.cloneNode(true));
+    }
+
     sheet.getAnimations().forEach(a => a.cancel());
     sheetScroll.getAnimations().forEach(a => a.cancel());
     backdrop.getAnimations().forEach(a => a.cancel());
@@ -332,7 +353,6 @@ const letters = [
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
-    // Fade in backdrop
     backdrop.style.display = 'block';
     backdrop.animate(
       [{ opacity: 0 }, { opacity: 1 }],
@@ -341,7 +361,6 @@ const letters = [
 
     document.body.classList.add('sheet-open');
 
-    // Phase 1: Envelope shrinks and flies to bottom-center
     envelope.style.zIndex = '501';
     const envCx = envRect.left + envRect.width / 2;
     const envCy = envRect.top + envRect.height / 2;
@@ -367,9 +386,9 @@ const letters = [
       fill: 'forwards',
     });
 
-    // Phase 2: Sheet rises from bottom-center (overlaps slightly with envelope flight)
-    const sheetW = Math.min(vw - 32, 540);
-    const sheetH = Math.min(vh * 0.82, 640);
+    const isPhone = vw <= 480;
+    const sheetW = Math.min(isPhone ? vw : vw - 32, 700);
+    const sheetH = Math.min(vh * (isPhone ? 0.93 : 0.92), 860);
     const endTop = vh - sheetH;
     const endLeft = (vw - sheetW) / 2;
     const startW = envRect.width * 0.3;
@@ -461,7 +480,6 @@ const letters = [
 
     document.body.classList.remove('sheet-open');
 
-    // Reverse the envelope flight: fly back from bottom-center, flip back, restore
     if (activeEnvelope) {
       const env = activeEnvelope;
       if (activeEnvAnim) {
