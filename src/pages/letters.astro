@@ -308,6 +308,8 @@ const letters = [
 
   let activeEnvelope: HTMLElement | null = null;
   let activeEnvAnim: Animation | null = null;
+  let savedStartTransform = '';
+  let savedEndTransform = '';
   let isOpen = false;
   let isAnimating = false;
 
@@ -349,11 +351,18 @@ const letters = [
     const flyTx = vw / 2 - baseCx;
     const flyTy = vh - baseCy;
 
+    const cs = getComputedStyle(envelope);
+    const cssR = cs.getPropertyValue('--r').trim() || '0deg';
+    const cssTx = cs.getPropertyValue('--tx').trim() || '0px';
+    const cssTy = cs.getPropertyValue('--ty').trim() || '0px';
+    savedStartTransform = `rotate(${cssR}) translate(${cssTx}, ${cssTy})`;
+    savedEndTransform = `translate(${flyTx}px, ${flyTy}px) perspective(800px) rotateY(180deg) scale(0.25)`;
+
     activeEnvAnim = envelope.animate([
-      { transform: getComputedStyle(envelope).transform, opacity: 1 },
-      { transform: `translate(${flyTx}px, ${flyTy}px) scale(0.25)`, opacity: 0 },
+      { transform: `${savedStartTransform} perspective(800px) rotateY(0deg)`, opacity: 1 },
+      { transform: savedEndTransform, opacity: 0 },
     ], {
-      duration: 420,
+      duration: 500,
       easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
       fill: 'forwards',
     });
@@ -441,7 +450,6 @@ const letters = [
       sheet.removeAttribute('style');
       sheetScroll.removeAttribute('style');
       sheet.setAttribute('aria-hidden', 'true');
-      isAnimating = false;
     };
 
     backdrop.animate(
@@ -453,7 +461,7 @@ const letters = [
 
     document.body.classList.remove('sheet-open');
 
-    // Cancel envelope flight and fade it back in at its original position
+    // Reverse the envelope flight: fly back from bottom-center, flip back, restore
     if (activeEnvelope) {
       const env = activeEnvelope;
       if (activeEnvAnim) {
@@ -461,14 +469,27 @@ const letters = [
         activeEnvAnim = null;
       }
       env.style.opacity = '0';
-      env.style.zIndex = '';
-      env.animate(
-        [{ opacity: 0 }, { opacity: 1 }],
-        { duration: 350, fill: 'forwards', easing: 'ease-out' }
-      ).onfinish = () => {
-        env.style.opacity = '1';
-      };
+
+      setTimeout(() => {
+        const returnAnim = env.animate([
+          { transform: savedEndTransform, opacity: 0 },
+          { transform: `${savedStartTransform} perspective(800px) rotateY(0deg)`, opacity: 1, offset: 0.85 },
+          { transform: savedStartTransform, opacity: 1 },
+        ], {
+          duration: 550,
+          easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)',
+          fill: 'forwards',
+        });
+        returnAnim.onfinish = () => {
+          returnAnim.cancel();
+          env.style.opacity = '1';
+          env.style.zIndex = '';
+          isAnimating = false;
+        };
+      }, 180);
       activeEnvelope = null;
+    } else {
+      isAnimating = false;
     }
   }
 
