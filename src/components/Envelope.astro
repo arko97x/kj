@@ -1,0 +1,182 @@
+---
+interface Stamp {
+  src?: string;
+  color?: string;
+}
+
+interface Props {
+  name: string;
+  stamps?: Stamp[];
+  kjStamp?: 1 | 2;
+  rotation?: number;
+  offsetX?: number;
+  offsetY?: number;
+}
+
+const {
+  name,
+  stamps = [],
+  kjStamp = 1,
+  rotation = 0,
+  offsetX = 0,
+  offsetY = 0,
+} = Astro.props;
+---
+
+<button
+  class="envelope"
+  type="button"
+  data-sender={name}
+  style={`--r:${rotation}deg; --tx:${offsetX}px; --ty:${offsetY}px;`}
+>
+  {stamps.length > 0 && (
+    <div class="stamps">
+      {stamps.map(({ src, color }) => (
+        <div class="stamp">
+          {src ? (
+            <img src={src} alt="" loading="lazy" />
+          ) : (
+            <div class="stamp-fill" style={`background:${color || "#c4a882"};`} />
+          )}
+        </div>
+      ))}
+    </div>
+  )}
+
+  <img class="address-lines" src="/images/kj-address-lines.svg" alt="" />
+
+  <div class="address">
+    <span class="from-label">from</span>
+    <span class="sender">{name}</span>
+  </div>
+
+  <img class="kj-stamp" src={`/images/kj-stamp-${kjStamp}.svg`} alt="" />
+</button>
+
+<style>
+  .envelope {
+    position: relative;
+    width: 280px;
+    aspect-ratio: 1.45;
+    background: #f2e8d0;
+    border: none;
+    border-radius: 6px;
+    box-shadow:
+      inset 0 1px 0 0 #faf4e8,
+      0 2px 8px rgba(60, 40, 20, 0.1),
+      0 1px 3px rgba(60, 40, 20, 0.08);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: center;
+    z-index: 1;
+    transform: rotate(var(--r, 0deg)) translate(var(--tx, 0px), var(--ty, 0px));
+    transition:
+      transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1),
+      box-shadow 0.3s ease;
+    outline: none;
+  }
+
+  .envelope:hover {
+    z-index: 10;
+    transform: rotate(0deg) translateY(-8px) scale(1.04);
+    box-shadow:
+      inset 0 1px 0 0 #faf4e8,
+      0 16px 32px rgba(60, 40, 20, 0.16),
+      0 4px 10px rgba(60, 40, 20, 0.08);
+  }
+
+  .envelope:focus-visible {
+    box-shadow:
+      0 0 0 3px #5a189a55,
+      0 2px 8px rgba(60, 40, 20, 0.1);
+  }
+
+  /* stamps ----------------------------------------------------------- */
+
+  .stamps {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: flex;
+    gap: 2px;
+  }
+
+  .stamp {
+    width: 42px;
+    height: 50px;
+    background: url("/images/kj-stamp-bg.svg") center / contain no-repeat;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .stamp img,
+  .stamp-fill {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border-radius: 1px;
+  }
+
+  .stamp img {
+    object-fit: cover;
+  }
+
+  /* center graphic --------------------------------------------------- */
+
+  .address-lines {
+    width: 55%;
+    height: auto;
+    pointer-events: none;
+  }
+
+  /* address area ----------------------------------------------------- */
+
+  .address {
+    position: absolute;
+    bottom: 12px;
+    right: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .from-label {
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: #b0a48c;
+    letter-spacing: 0.02em;
+    line-height: 0.3;
+    margin-bottom: -2px;
+  }
+
+  .sender {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #3a3226;
+    letter-spacing: 0.01em;
+  }
+
+  /* kj stamp --------------------------------------------------------- */
+
+  .kj-stamp {
+    position: absolute;
+    bottom: 12px;
+    left: 14px;
+    width: 38px;
+    height: auto;
+    opacity: 0.85;
+    pointer-events: none;
+  }
+
+</style>

@@ -1,0 +1,127 @@
+---
+import "../styles/global.css";
+import Envelope from "../components/Envelope.astro";
+
+const letters = [
+  { name: "Aisha",  stamps: [{ color: "#e85d75" }, { color: "#4a90c4" }], kjStamp: 1 as const },
+  { name: "Rohan",  stamps: [{ color: "#6b8cce" }],                       kjStamp: 2 as const },
+  { name: "Priya",  stamps: [{ color: "#c97b4a" }],                       kjStamp: 1 as const },
+  { name: "Dev",    stamps: [{ color: "#5a9a6b" }, { color: "#e8a849" }], kjStamp: 2 as const },
+  { name: "Zara",   stamps: [{ color: "#9b6bb5" }],                       kjStamp: 1 as const },
+  { name: "Aman",   stamps: [{ color: "#d4785a" }, { color: "#7ab56b" }], kjStamp: 2 as const },
+  { name: "Nisha",  stamps: [{ color: "#5a8ab5" }],                       kjStamp: 1 as const },
+  { name: "Kiran",  stamps: [{ color: "#c95a6b" }, { color: "#b5a05a" }], kjStamp: 2 as const },
+  { name: "Vikram", stamps: [{ color: "#8a6bc9" }],                       kjStamp: 1 as const },
+  { name: "Leela",  stamps: [{ color: "#c9896b" }],                       kjStamp: 2 as const },
+];
+
+function hashRandom(seed: string) {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) {
+    h = Math.imul(h ^ seed.charCodeAt(i), 0x9e3779b9);
+  }
+  return ((h >>> 0) / 4294967296);
+}
+
+function scatter(name: string, idx: number) {
+  const r1 = hashRandom(name + ":r:" + idx);
+  const r2 = hashRandom(name + ":x:" + idx);
+  const r3 = hashRandom(name + ":y:" + idx);
+  return {
+    rotation: (r1 - 0.5) * 20,
+    offsetX:  (r2 - 0.5) * 28,
+    offsetY:  (r3 - 0.5) * 18,
+  };
+}
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Letters for KJ</title>
+  </head>
+  <body style="overflow-y: auto;">
+    <main class="letters-page">
+      <div class="scatter">
+        {letters.map((letter, i) => {
+          const s = scatter(letter.name, i);
+          return (
+            <Envelope
+              name={letter.name}
+              stamps={letter.stamps}
+              kjStamp={letter.kjStamp}
+              rotation={s.rotation}
+              offsetX={s.offsetX}
+              offsetY={s.offsetY}
+            />
+          );
+        })}
+      </div>
+    </main>
+  </body>
+</html>
+
+<style>
+  .letters-page {
+    min-height: 100vh;
+    padding: 72px 24px 96px;
+  }
+
+  .scatter {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 36px 44px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .scatter :global(.envelope) {
+    opacity: 0;
+  }
+
+  .scatter :global(.envelope.animate-in) {
+    animation: scatter-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) var(--delay, 0s) both;
+  }
+
+  @keyframes scatter-in {
+    from {
+      transform: translate(var(--dx, 0px), var(--dy, 0px)) scale(0.2);
+      opacity: 0;
+    }
+    to {
+      transform: rotate(var(--r, 0deg)) translate(var(--tx, 0px), var(--ty, 0px));
+      opacity: 1;
+    }
+  }
+</style>
+
+<script>
+  const scatter = document.querySelector('.scatter') as HTMLElement;
+  const envelopes = [...document.querySelectorAll<HTMLElement>('.envelope')];
+
+  const rect = scatter.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+
+  envelopes.forEach((el, i) => {
+    const r = el.getBoundingClientRect();
+    const dx = cx - (r.left + r.width / 2);
+    const dy = cy - (r.top + r.height / 2);
+
+    el.style.setProperty('--dx', `${dx}px`);
+    el.style.setProperty('--dy', `${dy}px`);
+    el.style.setProperty('--delay', `${i * 70}ms`);
+    el.classList.add('animate-in');
+
+    el.addEventListener('animationend', () => {
+      el.classList.remove('animate-in');
+      el.style.opacity = '1';
+      el.style.removeProperty('--dx');
+      el.style.removeProperty('--dy');
+      el.style.removeProperty('--delay');
+    }, { once: true });
+  });
+</script>
