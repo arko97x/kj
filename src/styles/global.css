@@ -1,7 +1,16 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Pally";
+  src: url("/fonts/Pally-Variable.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 body {
-  background-color: #fffefc;
+  font-family: "Pally", sans-serif;
+  background-color: #fffefc; /* #fffefc */
   min-height: 100vh;
   margin: 0;
   overflow: hidden;

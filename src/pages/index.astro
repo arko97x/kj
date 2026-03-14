@@ -2,6 +2,51 @@
 import "../styles/global.css";
 ---
 
+<style>
+  .love-btn {
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: #fffbf5;
+    background: #5a189a;
+    border: none;
+    border-radius: 14px;
+    padding: 13px 32px;
+    cursor: pointer;
+    box-shadow: 0 5px 0 0 #1a0030;
+    transform: translateY(0);
+    user-select: none;
+    outline: none;
+    position: relative;
+  }
+
+  @media (min-width: 768px) {
+    .love-btn {
+      font-size: 1.05rem;
+    }
+  }
+
+  .love-btn:hover {
+    background: #6d28a0;
+    transform: translateY(-2px);
+    box-shadow: 0 7px 0 0 #1a0030;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  }
+
+  .love-btn.pressing {
+    animation: btn-press 0.35s ease forwards;
+    pointer-events: none;
+  }
+
+  @keyframes btn-press {
+    0%   { transform: translateY(0px);  box-shadow: 0 5px 0 0 #1a0030; }
+    30%  { transform: translateY(5px);  box-shadow: 0 0px 0 0 #1a0030; }
+    70%  { transform: translateY(-2px); box-shadow: 0 7px 0 0 #1a0030; }
+    100% { transform: translateY(0px);  box-shadow: 0 5px 0 0 #1a0030; }
+  }
+</style>
+
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -13,40 +58,55 @@ import "../styles/global.css";
   <body>
     <canvas id="dot-grid"></canvas>
 
-    <main class="relative z-10 flex items-center justify-center min-h-screen px-8 py-16">
-      <div class="flex flex-col md:flex-row gap-12 md:gap-16 items-center max-w-3xl w-full">
-        <!-- Text -->
-        <div class="flex-1 flex flex-col gap-2 text-center items-center">
-          <p class="text-stone-500 text-2xl tracking-wide">Dearest</p>
-          <p class="text-stone-800 text-4xl max-w-full md:max-w-[75%] font-semibold leading-tighter">
-            Karth, Katz, KatyK, KJ
-          </p>
-          <p class="text-stone-700 text-5xl font-bold mt-2 tracking-tight">
-            Happy Birthday!
-          </p>
-        </div>
-
-        <!-- Polaroid -->
-        <div class="flex-1 flex justify-center" style="perspective: 800px;">
-          <div
-            id="polaroid"
-            class="bg-white p-3 pb-16 rounded-lg shadow-xl inline-block relative overflow-hidden"
-            style="transform: rotate(2deg); will-change: transform; transition: transform 0.1s ease-out;"
-          >
-            <img
-              src="https://placehold.co/300x400/e7e0d8/a6a09a?text=Photo"
-              alt="Portrait placeholder"
-              class="w-56 md:w-64 lg:w-72 block"
-            />
+    <main id="screen-1" class="relative z-10 flex items-center justify-center min-h-screen px-8 py-16" style="transition: opacity 0.5s ease;">
+      <div class="flex flex-col items-center gap-10 max-w-3xl w-full">
+        <div class="flex flex-col md:flex-row gap-12 md:gap-16 items-center w-full">
+          <!-- Polaroid -->
+          <div class="flex-1 flex justify-center" style="perspective: 800px;">
             <div
-              id="polaroid-glimmer"
-              class="absolute inset-0 rounded-lg pointer-events-none"
-              style="opacity: 0; transition: opacity 0.3s ease;"
-            ></div>
+              id="polaroid"
+              class="bg-white p-3 pb-13 rounded-lg shadow-xl inline-block relative overflow-hidden border border-gray-200"
+              style="transform: rotate(-2deg); will-change: transform; transition: transform 0.1s ease-out;"
+            >
+              <img
+                src="/images/kj-landing.jpeg"
+                alt="KJ"
+                class="w-56 md:w-64 lg:w-72 block object-cover rounded-sm"
+                style="aspect-ratio: 3/4;"
+              />
+              <div
+                id="polaroid-glimmer"
+                class="absolute inset-0 rounded-lg pointer-events-none"
+                style="opacity: 0; transition: opacity 0.3s ease;"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Text -->
+          <div class="flex-1 flex flex-col gap-2 text-center items-center">
+            <p class="text-stone-500 text-2xl tracking-wide">Dearest</p>
+            <p class="text-3xl md:text-4xl max-w-full md:max-w-[75%] font-medium leading-tighter" style="color: #5a189a;">
+              Kart / Katz / KatyK / KJ,
+            </p>
+            <p class="text-stone-700 text-4xl md:text-5xl font-medium mt-0 tracking-tight">
+              Happy Budday!
+            </p>
+            <button id="love-btn" class="love-btn mt-12">We love you 3000</button>
           </div>
         </div>
       </div>
     </main>
+
+    <!-- Screen 2 -->
+    <section
+      id="screen-2"
+      class="fixed inset-0 z-10 flex items-center justify-center px-8 py-16 pointer-events-none"
+      style="opacity: 0; transition: opacity 0.5s ease;"
+    >
+      <div class="flex flex-col items-center gap-6 max-w-2xl w-full text-center">
+        <p class="text-stone-500 text-xl tracking-wide">more to come here</p>
+      </div>
+    </section>
 
     <script>
       const canvas = document.getElementById("dot-grid") as HTMLCanvasElement;
@@ -147,7 +207,7 @@ import "../styles/global.css";
       const polaroid = document.getElementById("polaroid") as HTMLElement;
       const glimmer = document.getElementById("polaroid-glimmer") as HTMLElement;
 
-      const BASE_ROTATE = 2;
+      const BASE_ROTATE = -2;
       const MAX_TILT = 12;
 
       let currentX = BASE_ROTATE;
@@ -190,6 +250,30 @@ import "../styles/global.css";
       });
 
       tick();
+    </script>
+    <script>
+      const loveBtn = document.getElementById("love-btn") as HTMLButtonElement;
+      const screen1 = document.getElementById("screen-1") as HTMLElement;
+      const screen2 = document.getElementById("screen-2") as HTMLElement;
+
+      loveBtn.addEventListener("click", () => {
+        if (loveBtn.classList.contains("pressing")) return;
+        loveBtn.classList.add("pressing");
+
+        loveBtn.addEventListener(
+          "animationend",
+          () => {
+            loveBtn.classList.remove("pressing");
+
+            screen1.style.opacity = "0";
+            screen1.style.pointerEvents = "none";
+
+            screen2.style.opacity = "1";
+            screen2.style.pointerEvents = "auto";
+          },
+          { once: true }
+        );
+      });
     </script>
   </body>
 </html>
