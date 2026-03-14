@@ -3,36 +3,17 @@ import "../styles/global.css";
 import Envelope from "../components/Envelope.astro";
 
 const letters = [
-  { name: "Aisha",  stamps: [{ color: "#e85d75" }, { color: "#4a90c4" }], kjStamp: 1 as const },
-  { name: "Rohan",  stamps: [{ color: "#6b8cce" }],                       kjStamp: 2 as const },
-  { name: "Priya",  stamps: [{ color: "#c97b4a" }],                       kjStamp: 1 as const },
-  { name: "Dev",    stamps: [{ color: "#5a9a6b" }, { color: "#e8a849" }], kjStamp: 2 as const },
-  { name: "Zara",   stamps: [{ color: "#9b6bb5" }],                       kjStamp: 1 as const },
-  { name: "Aman",   stamps: [{ color: "#d4785a" }, { color: "#7ab56b" }], kjStamp: 2 as const },
-  { name: "Nisha",  stamps: [{ color: "#5a8ab5" }],                       kjStamp: 1 as const },
-  { name: "Kiran",  stamps: [{ color: "#c95a6b" }, { color: "#b5a05a" }], kjStamp: 2 as const },
-  { name: "Vikram", stamps: [{ color: "#8a6bc9" }],                       kjStamp: 1 as const },
-  { name: "Leela",  stamps: [{ color: "#c9896b" }],                       kjStamp: 2 as const },
+  { name: "Aisha",  stamps: [{ color: "#e85d75" }, { color: "#4a90c4" }], kjStamp: 1 as const, r: -7,   tx:  10, ty: -4  },
+  { name: "Rohan",  stamps: [{ color: "#6b8cce" }],                       kjStamp: 2 as const, r:  4.5, tx: -6,  ty:  5  },
+  { name: "Priya",  stamps: [{ color: "#c97b4a" }],                       kjStamp: 1 as const, r:  9,   tx:  4,  ty: -7  },
+  { name: "Dev",    stamps: [{ color: "#5a9a6b" }, { color: "#e8a849" }], kjStamp: 2 as const, r: -5,   tx: -10, ty:  3  },
+  { name: "Zara",   stamps: [{ color: "#9b6bb5" }],                       kjStamp: 1 as const, r:  6.5, tx:  8,  ty:  6  },
+  { name: "Aman",   stamps: [{ color: "#d4785a" }, { color: "#7ab56b" }], kjStamp: 2 as const, r: -10,  tx: -3,  ty: -5  },
+  { name: "Nisha",  stamps: [{ color: "#5a8ab5" }],                       kjStamp: 1 as const, r:  3.5, tx:  12, ty:  2  },
+  { name: "Kiran",  stamps: [{ color: "#c95a6b" }, { color: "#b5a05a" }], kjStamp: 2 as const, r: -8,   tx: -8,  ty: -6  },
+  { name: "Vikram", stamps: [{ color: "#8a6bc9" }],                       kjStamp: 1 as const, r:  11,  tx:  5,  ty:  4  },
+  { name: "Leela",  stamps: [{ color: "#c9896b" }],                       kjStamp: 2 as const, r: -4.5, tx: -11, ty: -3  },
 ];
-
-function hashRandom(seed: string) {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) {
-    h = Math.imul(h ^ seed.charCodeAt(i), 0x9e3779b9);
-  }
-  return ((h >>> 0) / 4294967296);
-}
-
-function scatter(name: string, idx: number) {
-  const r1 = hashRandom(name + ":r:" + idx);
-  const r2 = hashRandom(name + ":x:" + idx);
-  const r3 = hashRandom(name + ":y:" + idx);
-  return {
-    rotation: (r1 - 0.5) * 20,
-    offsetX:  (r2 - 0.5) * 28,
-    offsetY:  (r3 - 0.5) * 18,
-  };
-}
 ---
 
 <html lang="en">
@@ -46,15 +27,14 @@ function scatter(name: string, idx: number) {
     <main class="letters-page">
       <div class="scatter">
         {letters.map((letter, i) => {
-          const s = scatter(letter.name, i);
           return (
             <Envelope
               name={letter.name}
               stamps={letter.stamps}
               kjStamp={letter.kjStamp}
-              rotation={s.rotation}
-              offsetX={s.offsetX}
-              offsetY={s.offsetY}
+              rotation={letter.r}
+              offsetX={letter.tx}
+              offsetY={letter.ty}
             />
           );
         })}
