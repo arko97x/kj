@@ -45,6 +45,42 @@ import "../styles/global.css";
     70%  { transform: translateY(-2px); box-shadow: 0 7px 0 0 #1a0030; }
     100% { transform: translateY(0px);  box-shadow: 0 5px 0 0 #1a0030; }
   }
+
+  @keyframes entrance-pop {
+    from { transform: scale(0.65); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+  }
+
+  @keyframes entrance-fade-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  #polaroid-entrance {
+    animation: entrance-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    transform-style: preserve-3d;
+  }
+
+  #text-dearest {
+    animation: entrance-fade-up 0.4s ease both;
+    animation-delay: 0.15s;
+  }
+
+  #text-name {
+    animation: entrance-fade-up 0.4s ease both;
+    animation-delay: 0.35s;
+  }
+
+  #text-happy {
+    animation: entrance-fade-up 0.4s ease both;
+    animation-delay: 0.45s;
+  }
+
+  #btn-entrance {
+    animation: entrance-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    animation-delay: 0.82s;
+    display: inline-block;
+  }
 </style>
 
 <html lang="en">
@@ -63,13 +99,14 @@ import "../styles/global.css";
         <div class="flex flex-col md:flex-row gap-12 md:gap-16 items-center w-full">
           <!-- Polaroid -->
           <div class="flex-1 flex justify-center" style="perspective: 800px;">
+            <div id="polaroid-entrance">
             <div
               id="polaroid"
               class="bg-white p-3 pb-13 rounded-lg shadow-xl inline-block relative overflow-hidden border border-gray-200"
               style="transform: rotate(-2deg); will-change: transform; transition: transform 0.1s ease-out;"
             >
               <img
-                src="/images/kj-landing.jpeg"
+                src="/images/kj-landing.avif"
                 alt="KJ"
                 class="w-56 md:w-64 lg:w-72 block object-cover rounded-sm"
                 style="aspect-ratio: 3/4;"
@@ -78,20 +115,23 @@ import "../styles/global.css";
                 id="polaroid-glimmer"
                 class="absolute inset-0 rounded-lg pointer-events-none"
                 style="opacity: 0; transition: opacity 0.3s ease;"
-              ></div>
+              >              </div>
+            </div>
             </div>
           </div>
 
           <!-- Text -->
           <div class="flex-1 flex flex-col gap-2 text-center items-center">
-            <p class="text-stone-500 text-2xl tracking-wide">Dearest</p>
-            <p class="text-3xl md:text-4xl max-w-full md:max-w-[75%] font-medium leading-tighter" style="color: #5a189a;">
+            <p id="text-dearest" class="text-stone-500 text-2xl tracking-wide">Dearest</p>
+            <p id="text-name" class="text-3xl md:text-4xl max-w-full md:max-w-[75%] font-medium leading-tighter" style="color: #5a189a;">
               Kart / Katz / KatyK / KJ,
             </p>
-            <p class="text-stone-700 text-4xl md:text-5xl font-medium mt-0 tracking-tight">
+            <p id="text-happy" class="text-stone-700 text-4xl md:text-5xl font-medium mt-0 tracking-tight">
               Happy Budday!
             </p>
-            <button id="love-btn" class="love-btn mt-12">We love you 3000</button>
+            <div id="btn-entrance" class="mt-9">
+              <button id="love-btn" class="love-btn">We love you 3000</button>
+            </div>
           </div>
         </div>
       </div>
@@ -206,6 +246,13 @@ import "../styles/global.css";
     <script>
       const polaroid = document.getElementById("polaroid") as HTMLElement;
       const glimmer = document.getElementById("polaroid-glimmer") as HTMLElement;
+      const polaroidEntrance = document.getElementById("polaroid-entrance") as HTMLElement;
+
+      polaroidEntrance.addEventListener("animationend", () => {
+        polaroidEntrance.style.animation = "none";
+        polaroidEntrance.style.transform = "";
+        polaroidEntrance.style.opacity = "";
+      }, { once: true });
 
       const BASE_ROTATE = -2;
       const MAX_TILT = 12;
