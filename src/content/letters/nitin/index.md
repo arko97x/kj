@@ -2,7 +2,7 @@
 name: Nitin
 stamp: ./stamp.avif
 kjStamp: 1
-order: 4
+order: 6
 rotation: -8
 offsetX: 45
 offsetY: -4
