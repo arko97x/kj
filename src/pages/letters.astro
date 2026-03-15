@@ -9,10 +9,18 @@ const allLetters = (await getCollection("letters")).sort((a, b) => {
   return ao - bo;
 });
 
+const handwritingFonts = [
+  '"Caveat", cursive',
+  '"Dawning of a New Day", cursive',
+  '"Homemade Apple", cursive',
+  '"Single Day", cursive',
+];
+
 const rendered = await Promise.all(
-  allLetters.map(async (entry) => {
+  allLetters.map(async (entry, i) => {
     const { Content } = await render(entry);
-    return { entry, Content };
+    const font = handwritingFonts[i % handwritingFonts.length];
+    return { entry, Content, font };
   })
 );
 ---
@@ -41,8 +49,8 @@ const rendered = await Promise.all(
       </div>
     </main>
 
-    {rendered.map(({ entry, Content }) => (
-      <template data-letter={entry.id}>
+    {rendered.map(({ entry, Content, font }) => (
+      <template data-letter={entry.id} data-font={font}>
         <Content />
       </template>
     ))}
@@ -180,8 +188,7 @@ const rendered = await Promise.all(
   }
 
   .sheet-body {
-    font-family: "Cormorant Garamond", serif;
-    font-size: 1.2rem;
+    font-size: 1.35rem;
     line-height: 1.75;
     color: #4a3f33;
   }
@@ -335,6 +342,7 @@ const rendered = await Promise.all(
     if (tpl) {
       sheetBody.innerHTML = '';
       sheetBody.appendChild(tpl.content.cloneNode(true));
+      sheetBody.style.fontFamily = tpl.dataset.font || '';
     }
 
     sheet.getAnimations().forEach(a => a.cancel());
