@@ -2,7 +2,7 @@
 name: Adithya
 stamp: ./stamp.avif
 kjStamp: 1
-rotation: -7
+rotation: -9
 offsetX: 10
 offsetY: -4
 ---

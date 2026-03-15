@@ -2,9 +2,9 @@
 name: Akshat
 stamp: ./stamp.avif
 kjStamp: 1
-rotation: -7
+rotation: 12
 offsetX: 10
-offsetY: -4
+offsetY: -84
 ---
 
 Hey man  

@@ -2,8 +2,9 @@
 name: Mom & Dad
 stamp: ./stamp.avif
 kjStamp: 1
-rotation: -7
-offsetX: 10
+order: 1
+rotation: -14
+offsetX: -40
 offsetY: -4
 ---
 

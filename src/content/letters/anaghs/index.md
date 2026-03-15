@@ -1,10 +1,11 @@
 ---
 name: Anaghs
 stamp: ./stamp.avif
-kjStamp: 1
-rotation: -7
+kjStamp: 2
+order: 3
+rotation: 5
 offsetX: 10
-offsetY: -4
+offsetY: -14
 ---
 
 ![](./scan.avif)

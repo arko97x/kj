@@ -2,7 +2,7 @@
 name: Pranav
 stamp: ./stamp.avif
 kjStamp: 2
-rotation: 4.5
+rotation: 8
 offsetX: -6
 offsetY: 5
 ---

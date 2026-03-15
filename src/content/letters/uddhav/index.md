@@ -2,7 +2,7 @@
 name: Uddhav
 stamp: ./stamp.avif
 kjStamp: 2
-rotation: 4.5
+rotation: -12
 offsetX: -6
 offsetY: 5
 ---

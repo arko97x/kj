@@ -8,6 +8,7 @@ const letters = defineCollection({
       name: z.string(),
       stamp: image(),
       kjStamp: z.union([z.literal(1), z.literal(2)]).default(1),
+      order: z.number().optional(),
       rotation: z.number().default(0),
       offsetX: z.number().default(0),
       offsetY: z.number().default(0),

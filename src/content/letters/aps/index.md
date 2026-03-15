@@ -1,8 +1,9 @@
 ---
 name: Aps
 stamp: ./stamp.avif
-kjStamp: 1
-rotation: -7
+kjStamp: 2
+order: 2
+rotation: 10
 offsetX: 10
 offsetY: -4
 ---

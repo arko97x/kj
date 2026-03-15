@@ -3,7 +3,11 @@ import "../styles/global.css";
 import { getCollection, render } from "astro:content";
 import Envelope from "../components/Envelope.astro";
 
-const allLetters = await getCollection("letters");
+const allLetters = (await getCollection("letters")).sort((a, b) => {
+  const ao = a.data.order ?? Infinity;
+  const bo = b.data.order ?? Infinity;
+  return ao - bo;
+});
 
 const rendered = await Promise.all(
   allLetters.map(async (entry) => {

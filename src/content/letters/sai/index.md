@@ -2,7 +2,7 @@
 name: Sai
 stamp: ./stamp.avif
 kjStamp: 1
-rotation: -7
+rotation: 5.5
 offsetX: 10
 offsetY: -4
 ---

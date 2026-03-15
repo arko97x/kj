@@ -1,8 +1,8 @@
 ---
 name: Wenju
 stamp: ./stamp.avif
-kjStamp: 1
-rotation: -7
+kjStamp: 2
+rotation: 4
 offsetX: 10
 offsetY: -4
 ---
