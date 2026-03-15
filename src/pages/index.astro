@@ -110,9 +110,26 @@ const rendered = await Promise.all(
   .letters-page {
     min-height: 100vh;
     padding: 72px 24px 96px;
+    position: relative;
+  }
+
+  .stickers-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .stickers-bg img {
+    position: absolute;
+    display: block;
+    opacity: 0.88;
   }
 
   .scatter {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -386,6 +403,18 @@ const rendered = await Promise.all(
     <!-- Screen 2: Letters -->
     <div id="screen-2" style="display: none;">
       <main class="letters-page">
+        <div class="stickers-bg" aria-hidden="true">
+          <img src="/images/sticker-noods.png"       width="195" style="left:3%;   top:6%;  transform:rotate(-14deg);" />
+          <img src="/images/sticker-lp.png"          width="160" style="left:87%;  top:4%;  transform:rotate(11deg);"  />
+          <img src="/images/sticker-album.png"    width="170" style="left:4%;   top:44%; transform:rotate(-7deg);"  />
+          <img src="/images/sticker-runningshoe.png" width="180" style="left:83%;  top:36%; transform:rotate(19deg);"  />
+          <img src="/images/sticker-dumpling.png"       width="170" style="left:47%;  top:2%;  transform:rotate(-4deg);"  />
+          <img src="/images/sticker-f1.png"          width="170" style="left:78%;  top:70%; transform:rotate(-17deg);" />
+          <img src="/images/sticker-aaateeee.png"    width="180" style="left:5%;   top:76%; transform:rotate(9deg);"   />
+          <img src="/images/sticker-perfume.png"     width="170" style="left:38%;  top:40%; transform:rotate(-21deg);" />
+          <img src="/images/sticker-spiderman.png"   width="175" style="left:34%;  top:86%; transform:rotate(7deg);"   />
+          <img src="/images/sticker-paneer.png"      width="160" style="left:59%;  top:58%; transform:rotate(-11deg);" />
+        </div>
         <div class="scatter">
           {rendered.map(({ entry }) => (
             <Envelope
