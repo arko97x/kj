@@ -1,5 +1,28 @@
 ---
 import "../styles/global.css";
+import { getCollection, render } from "astro:content";
+import Envelope from "../components/Envelope.astro";
+
+const allLetters = (await getCollection("letters")).sort((a, b) => {
+  const ao = a.data.order ?? Infinity;
+  const bo = b.data.order ?? Infinity;
+  return ao - bo;
+});
+
+const handwritingFonts = [
+  '"Caveat", cursive',
+  '"Dawning of a New Day", cursive',
+  '"Homemade Apple", cursive',
+  '"Single Day", cursive',
+];
+
+const rendered = await Promise.all(
+  allLetters.map(async (entry, i) => {
+    const { Content } = await render(entry);
+    const font = handwritingFonts[i % handwritingFonts.length];
+    return { entry, Content, font };
+  })
+);
 ---
 
 <style>
@@ -83,6 +106,229 @@ import "../styles/global.css";
   }
 </style>
 
+<style>
+  .letters-page {
+    min-height: 100vh;
+    padding: 72px 24px 96px;
+  }
+
+  .scatter {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 28px 36px;
+    max-width: 900px;
+    margin: 0 auto;
+    overflow: visible;
+  }
+
+  .scatter :global(.envelope) {
+    opacity: 0;
+  }
+
+  @media (min-width: 1000px) {
+    .scatter {
+      max-width: 1140px;
+      gap: 40px 16px;
+      padding: 0 60px;
+    }
+
+    .scatter :global(.envelope) {
+      width: 300px;
+      padding: 18px;
+    }
+    .scatter :global(.stamp-area) {
+      left: 15px;
+      top: 15px;
+    }
+    .scatter :global(.stamp) {
+      width: 116px;
+      height: 138px;
+      padding: 12px 15px;
+    }
+    .scatter :global(.address-lines) {
+      right: 15px;
+      bottom: 95px;
+    }
+    .scatter :global(.address) {
+      bottom: 12px;
+      right: 15px;
+    }
+    .scatter :global(.from-label) {
+      font-size: 0.85rem;
+    }
+    .scatter :global(.sender) {
+      font-size: 1.35rem;
+    }
+    .scatter :global(.kj-stamp) {
+      top: 118px;
+      left: 103px;
+      width: 64px;
+    }
+
+    /* Per-card scatter: translate composes on top of each envelope's own transform.
+       z-index decreases down the page so earlier rows always sit on top of later rows
+       — names at the bottom of each card are never buried under a row-below card.
+       Hover always surfaces to the very top. */
+    .scatter :global(.envelope:hover) { z-index: 99 !important; }
+
+    .scatter :global(.envelope:nth-child(1))  { translate: -80px   0px; z-index: 15; }
+    .scatter :global(.envelope:nth-child(2))  { translate:  30px  56px; z-index: 14; }
+    .scatter :global(.envelope:nth-child(3))  { translate: 110px  12px; z-index: 13; }
+    .scatter :global(.envelope:nth-child(4))  { translate: -60px  44px; z-index: 12; }
+    .scatter :global(.envelope:nth-child(5))  { translate: -10px -16px; z-index: 11; }
+    .scatter :global(.envelope:nth-child(6))  { translate: 100px  36px; z-index: 10; }
+    .scatter :global(.envelope:nth-child(7))  { translate:-120px  22px; z-index: 9;  }
+    .scatter :global(.envelope:nth-child(8))  { translate:  50px  52px; z-index: 8;  }
+    .scatter :global(.envelope:nth-child(9))  { translate:  90px -20px; z-index: 7;  }
+    .scatter :global(.envelope:nth-child(10)) { translate: -40px  48px; z-index: 6;  }
+    .scatter :global(.envelope:nth-child(11)) { translate:  20px   8px; z-index: 5;  }
+    .scatter :global(.envelope:nth-child(12)) { translate: 130px  28px; z-index: 4;  }
+    .scatter :global(.envelope:nth-child(13)) { translate: -90px  16px; z-index: 3;  }
+    .scatter :global(.envelope:nth-child(14)) { translate:  60px  40px; z-index: 2;  }
+    .scatter :global(.envelope:nth-child(15)) { translate: -20px  24px; z-index: 1;  }
+  }
+
+  .scatter :global(.envelope.animate-in) {
+    animation: scatter-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) var(--delay, 0s) both;
+  }
+
+  @keyframes scatter-in {
+    from {
+      transform: translate(var(--dx, 0px), var(--dy, 0px)) scale(0.2);
+      opacity: 0;
+    }
+    to {
+      transform: rotate(var(--r, 0deg)) translate(var(--tx, 0px), var(--ty, 0px));
+      opacity: 1;
+    }
+  }
+</style>
+
+<style>
+  :global(body.sheet-open) {
+    overflow: hidden !important;
+  }
+
+  .letter-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(30, 22, 12, 0.4);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 500;
+    opacity: 0;
+  }
+
+  .letter-sheet {
+    display: none;
+    position: fixed;
+    flex-direction: column;
+    background: linear-gradient(175deg, #faf6ee 0%, #f5efe3 100%);
+    box-shadow:
+      0 -8px 40px rgba(40, 28, 12, 0.18),
+      0 -2px 12px rgba(40, 28, 12, 0.08);
+    z-index: 502;
+    overflow: hidden;
+  }
+
+  .sheet-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: rgba(60, 50, 38, 0.07);
+    border-radius: 50%;
+    color: #6b5e4e;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    z-index: 2;
+  }
+
+  .sheet-close:hover {
+    background: rgba(60, 50, 38, 0.14);
+  }
+
+  .sheet-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 32px 48px;
+    opacity: 0;
+  }
+
+  .sheet-from-label {
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: #b0a48c;
+    margin: 0 0 2px;
+  }
+
+  .sheet-sender {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #3a3226;
+    margin: 0 0 14px;
+    letter-spacing: 0.01em;
+  }
+
+  .sheet-rule {
+    border: none;
+    height: 1.5px;
+    background: linear-gradient(to right, #c9b896, transparent);
+    width: 56px;
+    margin: 0 0 24px;
+  }
+
+  .sheet-body {
+    font-size: 1.35rem;
+    line-height: 1.75;
+    color: #4a3f33;
+  }
+
+  .sheet-body :global(p) {
+    margin: 0 0 16px;
+  }
+
+  .sheet-body :global(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    margin: 16px 0;
+    display: block;
+  }
+
+  /* Two images with no blank line between them in markdown → side by side */
+  .sheet-body :global(p:has(img + img)) {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0;
+  }
+  .sheet-body :global(p:has(img + img) img) {
+    flex: 1;
+    width: 0;
+    min-width: 0;
+    margin: 0;
+    object-fit: cover;
+  }
+
+  .sheet-body :global(strong) {
+    font-weight: 700;
+  }
+
+  .sheet-body :global(em) {
+    font-style: italic;
+  }
+</style>
+
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -94,7 +340,7 @@ import "../styles/global.css";
   <body>
     <canvas id="dot-grid"></canvas>
 
-    <main id="screen-1" class="relative z-10 flex items-center justify-center min-h-screen px-8 py-16" style="transition: opacity 0.5s ease;">
+    <main id="screen-1" class="relative z-10 flex items-center justify-center min-h-screen px-8 py-16">
       <div class="flex flex-col items-center gap-10 max-w-3xl w-full">
         <div class="flex flex-col md:flex-row gap-12 md:gap-16 items-center w-full">
           <!-- Polaroid -->
@@ -137,17 +383,45 @@ import "../styles/global.css";
       </div>
     </main>
 
-    <!-- Screen 2 -->
-    <section
-      id="screen-2"
-      class="fixed inset-0 z-10 flex items-center justify-center px-8 py-16 pointer-events-none"
-      style="opacity: 0; transition: opacity 0.5s ease;"
-    >
-      <div class="flex flex-col items-center gap-6 max-w-2xl w-full text-center">
-        <p class="text-stone-500 text-xl tracking-wide">more to come here</p>
-      </div>
-    </section>
+    <!-- Screen 2: Letters -->
+    <div id="screen-2" style="display: none;">
+      <main class="letters-page">
+        <div class="scatter">
+          {rendered.map(({ entry }) => (
+            <Envelope
+              name={entry.data.name}
+              stamp={entry.data.stamp}
+              kjStamp={entry.data.kjStamp}
+              rotation={entry.data.rotation}
+              offsetX={entry.data.offsetX}
+              offsetY={entry.data.offsetY}
+              slug={entry.id}
+            />
+          ))}
+        </div>
+      </main>
+    </div>
 
+    {rendered.map(({ entry, Content, font }) => (
+      <template data-letter={entry.id} data-font={font}>
+        <Content />
+      </template>
+    ))}
+
+    <div class="letter-backdrop"></div>
+    <div class="letter-sheet" role="dialog" aria-hidden="true">
+      <button class="sheet-close" type="button" aria-label="Close letter">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      <div class="sheet-scroll">
+        <p class="sheet-from-label">a letter from</p>
+        <h2 class="sheet-sender"></h2>
+        <hr class="sheet-rule" />
+        <div class="sheet-body"></div>
+      </div>
+    </div>
+
+    <!-- Dot grid -->
     <script>
       const canvas = document.getElementById("dot-grid") as HTMLCanvasElement;
       const ctx = canvas.getContext("2d")!;
@@ -243,6 +517,7 @@ import "../styles/global.css";
       animate();
     </script>
 
+    <!-- Polaroid tilt + glimmer -->
     <script>
       const polaroid = document.getElementById("polaroid") as HTMLElement;
       const glimmer = document.getElementById("polaroid-glimmer") as HTMLElement;
@@ -283,7 +558,6 @@ import "../styles/global.css";
         targetX = dx * MAX_TILT;
         targetY = -dy * MAX_TILT;
 
-        // glimmer: map mouse position within polaroid to a highlight spot
         const px = ((e.clientX - rect.left) / rect.width) * 100;
         const py = ((e.clientY - rect.top) / rect.height) * 100;
         glimmer.style.background = `radial-gradient(circle at ${px}% ${py}%, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.08) 40%, transparent 70%)`;
@@ -298,28 +572,374 @@ import "../styles/global.css";
 
       tick();
     </script>
+
+    <!-- Paper texture shader (runs eagerly, applies to envelopes in background) -->
+    <script>
+      import {
+        ShaderMount,
+        paperTextureFragmentShader,
+        getShaderColorFromString,
+        getShaderNoiseTexture,
+        ShaderFitOptions,
+      } from '@paper-design/shaders';
+
+      try {
+        const container = document.createElement('div');
+        container.style.cssText =
+          'position:fixed;top:0;left:0;width:400px;height:276px;opacity:0;pointer-events:none;z-index:-9999;';
+        document.body.appendChild(container);
+
+        const noiseTexture = getShaderNoiseTexture();
+
+        const uniforms: Record<string, any> = {
+          u_image: '',
+          u_colorBack: getShaderColorFromString('#ffffff'),
+          u_colorFront: getShaderColorFromString('#f2e7cf'),
+          u_contrast: 1,
+          u_roughness: 0.99,
+          u_fiber: 0.42,
+          u_fiberSize: 0.35,
+          u_crumples: 0.3,
+          u_crumpleSize: 0.13,
+          u_folds: 0.65,
+          u_foldCount: 5,
+          u_fade: 0.35,
+          u_drops: 0.07,
+          u_seed: 480.8,
+          u_fit: ShaderFitOptions.cover,
+          u_scale: 0.5,
+          u_rotation: 0,
+          u_originX: 0.5,
+          u_originY: 0.5,
+          u_offsetX: 0,
+          u_offsetY: 0,
+          u_worldWidth: 0,
+          u_worldHeight: 0,
+        };
+
+        if (noiseTexture) uniforms.u_noiseTexture = noiseTexture;
+
+        const mount = new ShaderMount(
+          container,
+          paperTextureFragmentShader,
+          uniforms,
+          undefined,
+          0,
+        );
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const canvas = container.querySelector('canvas');
+            if (canvas) {
+              const dataUrl = canvas.toDataURL('image/png');
+              document.querySelectorAll<HTMLElement>('.envelope').forEach((el) => {
+                el.style.backgroundImage = `url(${dataUrl})`;
+                el.style.backgroundSize = 'cover';
+              });
+            }
+            mount.dispose();
+            container.remove();
+          });
+        });
+      } catch {
+        // WebGL unavailable — envelopes keep their solid CSS background
+      }
+    </script>
+
+    <!-- Scatter-in animation (triggered after transition) -->
+    <script>
+      document.addEventListener('start-scatter', () => {
+        const scatter = document.querySelector('.scatter') as HTMLElement;
+        const envelopes = [...document.querySelectorAll<HTMLElement>('.envelope')];
+
+        const rect = scatter.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+
+        envelopes.forEach((el, i) => {
+          const r = el.getBoundingClientRect();
+          const dx = cx - (r.left + r.width / 2);
+          const dy = cy - (r.top + r.height / 2);
+
+          el.style.setProperty('--dx', `${dx}px`);
+          el.style.setProperty('--dy', `${dy}px`);
+          el.style.setProperty('--delay', `${i * 70}ms`);
+          el.classList.add('animate-in');
+
+          el.addEventListener('animationend', () => {
+            el.classList.remove('animate-in');
+            el.style.opacity = '1';
+            el.style.removeProperty('--dx');
+            el.style.removeProperty('--dy');
+            el.style.removeProperty('--delay');
+          }, { once: true });
+        });
+      });
+    </script>
+
+    <!-- Letter sheet open/close -->
+    <script>
+      const backdrop = document.querySelector<HTMLElement>('.letter-backdrop')!;
+      const sheet = document.querySelector<HTMLElement>('.letter-sheet')!;
+      const sheetScroll = sheet.querySelector<HTMLElement>('.sheet-scroll')!;
+      const sheetSender = sheet.querySelector<HTMLElement>('.sheet-sender')!;
+      const sheetBody = sheet.querySelector<HTMLElement>('.sheet-body')!;
+      const closeBtn = sheet.querySelector<HTMLElement>('.sheet-close')!;
+
+      let activeEnvelope: HTMLElement | null = null;
+      let activeEnvAnim: Animation | null = null;
+      let savedStartTransform = '';
+      let savedEndTransform = '';
+      let isOpen = false;
+      let isAnimating = false;
+
+      function openSheet(envelope: HTMLElement) {
+        if (isOpen || isAnimating) return;
+        isAnimating = true;
+        activeEnvelope = envelope;
+
+        const sender = envelope.dataset.sender || '';
+        const slug = envelope.dataset.slug || '';
+        sheetSender.textContent = sender;
+
+        const tpl = document.querySelector<HTMLTemplateElement>(`template[data-letter="${slug}"]`);
+        if (tpl) {
+          sheetBody.innerHTML = '';
+          sheetBody.appendChild(tpl.content.cloneNode(true));
+          sheetBody.style.fontFamily = tpl.dataset.font || '';
+        }
+
+        sheet.getAnimations().forEach(a => a.cancel());
+        sheetScroll.getAnimations().forEach(a => a.cancel());
+        backdrop.getAnimations().forEach(a => a.cancel());
+        sheet.removeAttribute('style');
+        sheetScroll.removeAttribute('style');
+
+        const envRect = envelope.getBoundingClientRect();
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+
+        backdrop.style.display = 'block';
+        backdrop.animate(
+          [{ opacity: 0 }, { opacity: 1 }],
+          { duration: 380, fill: 'forwards', easing: 'ease-out' }
+        );
+
+        document.body.classList.add('sheet-open');
+
+        envelope.style.zIndex = '501';
+        const envCx = envRect.left + envRect.width / 2;
+        const envCy = envRect.top + envRect.height / 2;
+        const matrix = new DOMMatrix(getComputedStyle(envelope).transform);
+        const baseCx = envCx - matrix.e;
+        const baseCy = envCy - matrix.f;
+        const flyTx = vw / 2 - baseCx;
+        const flyTy = vh - baseCy;
+
+        const cs = getComputedStyle(envelope);
+        const cssR = cs.getPropertyValue('--r').trim() || '0deg';
+        const cssTx = cs.getPropertyValue('--tx').trim() || '0px';
+        const cssTy = cs.getPropertyValue('--ty').trim() || '0px';
+        savedStartTransform = `rotate(${cssR}) translate(${cssTx}, ${cssTy})`;
+        savedEndTransform = `translate(${flyTx}px, ${flyTy}px) perspective(800px) rotateY(180deg) scale(0.25)`;
+
+        activeEnvAnim = envelope.animate([
+          { transform: `${savedStartTransform} perspective(800px) rotateY(0deg)`, opacity: 1 },
+          { transform: savedEndTransform, opacity: 0 },
+        ], {
+          duration: 500,
+          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          fill: 'forwards',
+        });
+
+        const isPhone = vw <= 480;
+        const sheetW = Math.min(isPhone ? vw : vw - 32, 700);
+        const sheetH = Math.min(vh * (isPhone ? 0.93 : 0.92), 860);
+        const endTop = vh - sheetH;
+        const endLeft = (vw - sheetW) / 2;
+        const startW = envRect.width * 0.3;
+        const startLeft = (vw - startW) / 2;
+
+        setTimeout(() => {
+          sheet.style.display = 'flex';
+          sheetScroll.style.opacity = '0';
+
+          const sheetAnim = sheet.animate([
+            {
+              top: `${vh}px`,
+              left: `${startLeft}px`,
+              width: `${startW}px`,
+              height: '0px',
+              borderRadius: '8px 8px 0 0',
+              opacity: '0.85',
+            },
+            {
+              top: `${endTop}px`,
+              left: `${endLeft}px`,
+              width: `${sheetW}px`,
+              height: `${sheetH}px`,
+              borderRadius: '18px 18px 0 0',
+              opacity: '1',
+            },
+          ], {
+            duration: 500,
+            easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)',
+            fill: 'forwards',
+          });
+
+          sheetAnim.onfinish = () => {
+            sheet.style.top = `${endTop}px`;
+            sheet.style.left = `${endLeft}px`;
+            sheet.style.width = `${sheetW}px`;
+            sheet.style.height = `${sheetH}px`;
+            sheet.style.borderRadius = '18px 18px 0 0';
+            sheet.style.opacity = '1';
+
+            sheetScroll.animate(
+              [
+                { opacity: 0, transform: 'translateY(16px)' },
+                { opacity: 1, transform: 'translateY(0)' },
+              ],
+              { duration: 280, fill: 'forwards', easing: 'ease-out' }
+            ).onfinish = () => {
+              sheetScroll.style.opacity = '1';
+              sheetScroll.style.transform = '';
+              isOpen = true;
+              isAnimating = false;
+              sheet.setAttribute('aria-hidden', 'false');
+            };
+          };
+        }, 280);
+      }
+
+      function closeSheet() {
+        if (!isOpen || isAnimating) return;
+        isAnimating = true;
+        isOpen = false;
+
+        sheetScroll.animate(
+          [{ opacity: 1 }, { opacity: 0 }],
+          { duration: 150, fill: 'forwards' }
+        );
+
+        const closeAnim = sheet.animate([
+          { transform: 'translateY(0)', opacity: 1 },
+          { transform: `translateY(${window.innerHeight}px)`, opacity: 0 },
+        ], {
+          duration: 400,
+          easing: 'cubic-bezier(0.55, 0.06, 0.68, 0.19)',
+          fill: 'forwards',
+        });
+        closeAnim.onfinish = () => {
+          closeAnim.cancel();
+          sheet.removeAttribute('style');
+          sheetScroll.removeAttribute('style');
+          sheet.setAttribute('aria-hidden', 'true');
+        };
+
+        backdrop.animate(
+          [{ opacity: 1 }, { opacity: 0 }],
+          { duration: 350, fill: 'forwards', easing: 'ease-in' }
+        ).onfinish = () => {
+          backdrop.style.display = 'none';
+        };
+
+        document.body.classList.remove('sheet-open');
+
+        if (activeEnvelope) {
+          const env = activeEnvelope;
+          if (activeEnvAnim) {
+            activeEnvAnim.cancel();
+            activeEnvAnim = null;
+          }
+          env.style.opacity = '0';
+
+          setTimeout(() => {
+            const returnAnim = env.animate([
+              { transform: savedEndTransform, opacity: 0 },
+              { transform: `${savedStartTransform} perspective(800px) rotateY(0deg)`, opacity: 1, offset: 0.85 },
+              { transform: savedStartTransform, opacity: 1 },
+            ], {
+              duration: 550,
+              easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)',
+              fill: 'forwards',
+            });
+            returnAnim.onfinish = () => {
+              returnAnim.cancel();
+              env.style.opacity = '1';
+              env.style.zIndex = '';
+              isAnimating = false;
+            };
+          }, 180);
+          activeEnvelope = null;
+        } else {
+          isAnimating = false;
+        }
+      }
+
+      document.querySelectorAll<HTMLElement>('.envelope').forEach(el => {
+        el.addEventListener('click', () => {
+          if (el.classList.contains('animate-in')) return;
+          openSheet(el);
+        });
+      });
+
+      backdrop.addEventListener('click', closeSheet);
+      closeBtn.addEventListener('click', closeSheet);
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOpen) closeSheet();
+      });
+    </script>
+
+    <!-- Button click: transition from landing to letters -->
     <script>
       const loveBtn = document.getElementById("love-btn") as HTMLButtonElement;
       const screen1 = document.getElementById("screen-1") as HTMLElement;
       const screen2 = document.getElementById("screen-2") as HTMLElement;
+      const dotGrid = document.getElementById("dot-grid") as HTMLCanvasElement;
+
+      let transitioned = false;
 
       loveBtn.addEventListener("click", () => {
-        if (loveBtn.classList.contains("pressing")) return;
-        loveBtn.classList.add("pressing");
+        if (transitioned) return;
+        transitioned = true;
 
-        loveBtn.addEventListener(
-          "animationend",
-          () => {
-            loveBtn.classList.remove("pressing");
+        const exitTargets = [
+          document.getElementById("btn-entrance")!,
+          document.getElementById("text-happy")!,
+          document.getElementById("text-name")!,
+          document.getElementById("text-dearest")!,
+          document.getElementById("polaroid-entrance")!,
+        ];
 
-            screen1.style.opacity = "0";
-            screen1.style.pointerEvents = "none";
+        const STAGGER = 70;
+        const DURATION = 380;
 
-            screen2.style.opacity = "1";
-            screen2.style.pointerEvents = "auto";
-          },
-          { once: true }
-        );
+        let lastAnim!: Animation;
+        exitTargets.forEach((el, i) => {
+          lastAnim = el.animate([
+            { transform: 'scale(1)', opacity: 1, easing: 'ease-out' },
+            { transform: 'scale(1.12)', opacity: 1, offset: 0.28, easing: 'cubic-bezier(0.55, 0, 1, 0.45)' },
+            { transform: 'scale(0)', opacity: 0 },
+          ], {
+            duration: DURATION,
+            delay: i * STAGGER,
+            fill: 'forwards',
+          });
+        });
+
+        lastAnim.onfinish = () => {
+          screen1.style.display = "none";
+          screen2.style.display = "block";
+          document.body.style.overflowY = "auto";
+
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              document.dispatchEvent(new CustomEvent('start-scatter'));
+            });
+          });
+        };
       });
     </script>
   </body>
